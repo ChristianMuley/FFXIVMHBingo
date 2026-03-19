@@ -7,9 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="css\" />
-      <Folder Include="data\" />
-      <Folder Include="js\" />
+      <None Include="wwwroot\admin.html" />
+      <None Include="wwwroot\board.html" />
+      <None Include="wwwroot\css\site.css" />
+      <None Include="wwwroot\index.html" />
+      <None Include="wwwroot\js\admin.js" />
+      <None Include="wwwroot\js\app.js" />
     </ItemGroup>
 
 </Project>
