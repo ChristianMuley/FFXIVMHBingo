@@ -129,49 +129,55 @@
     },
 
     // ---------- Local stamping store ----------
+
     stamps: {
-      key(sessionId, teamId, boardId) {
-        return `${App.config.storagePrefix}.stamps.${sessionId}.${teamId}.${boardId}`;
+      path(sessionId, teamId, boardId) {
+        return `stamps/${sessionId}/${teamId}/${boardId}`;
       },
 
-      get(sessionId, teamId, boardId) {
-        const k = App.stamps.key(sessionId, teamId, boardId);
-        try {
-          const raw = localStorage.getItem(k);
-          if (!raw) return {};
-          const parsed = JSON.parse(raw);
-          return parsed && typeof parsed === "object" ? parsed : {};
-        } catch {
-          return {};
+      dbRef(sessionId, teamId, boardId) {
+        if (!window.FirebaseDb || !window.FirebaseDbApi) {
+          throw new Error("Firebase not initialized.");
         }
+
+        const { ref } = window.FirebaseDbApi;
+        return ref(window.FirebaseDb, App.stamps.path(sessionId, teamId, boardId));
       },
 
-      set(sessionId, teamId, boardId, obj) {
-        const k = App.stamps.key(sessionId, teamId, boardId);
-        localStorage.setItem(k, JSON.stringify(obj || {}));
+      async get(sessionId, teamId, boardId) {
+        const { get } = window.FirebaseDbApi;
+        const snapshot = await get(App.stamps.dbRef(sessionId, teamId, boardId));
+        return snapshot.exists() ? (snapshot.val() || {}) : {};
       },
 
-      isStamped(sessionId, teamId, boardId, tileIndex) {
-        const s = App.stamps.get(sessionId, teamId, boardId);
+      async set(sessionId, teamId, boardId, obj) {
+        const { set } = window.FirebaseDbApi;
+        await set(App.stamps.dbRef(sessionId, teamId, boardId), obj || {});
+      },
+
+      async isStamped(sessionId, teamId, boardId, tileIndex) {
+        const s = await App.stamps.get(sessionId, teamId, boardId);
         return !!s[String(tileIndex)];
       },
 
-      toggle(sessionId, teamId, boardId, tileIndex) {
-        const s = App.stamps.get(sessionId, teamId, boardId);
+      async toggle(sessionId, teamId, boardId, tileIndex) {
+        const s = await App.stamps.get(sessionId, teamId, boardId);
         const k = String(tileIndex);
         s[k] = !s[k];
-        App.stamps.set(sessionId, teamId, boardId, s);
+        await App.stamps.set(sessionId, teamId, boardId, s);
         return !!s[k];
       },
 
-      resetAll() {
-        const prefix = `${App.config.storagePrefix}.stamps.`;
-        const toRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith(prefix)) toRemove.push(key);
-        }
-        toRemove.forEach(k => localStorage.removeItem(k));
+      async resetAll() {
+        // Leave this disabled for now since Firebase reset should be targeted, not global.
+        console.warn("resetAll() is not implemented for Firebase yet.");
+      },
+
+      subscribe(sessionId, teamId, boardId, callback) {
+        const { onValue } = window.FirebaseDbApi;
+        return onValue(App.stamps.dbRef(sessionId, teamId, boardId), (snapshot) => {
+          callback(snapshot.exists() ? (snapshot.val() || {}) : {});
+        });
       }
     },
 
@@ -182,7 +188,8 @@
         teamId: null,
         teamCode: null,
         boardIds: [],
-        boardIndex: 0
+        boardIndex: 0,
+        unsubscribe: null,
       },
 
       async init() {
@@ -243,6 +250,11 @@
           s.boardIndex = (s.boardIndex + delta + s.boardIds.length) % s.boardIds.length;
           const boardId = s.boardIds[s.boardIndex];
 
+          if (s.unsubscribe) {
+            s.unsubscribe();
+            s.unsubscribe = null;
+          }
+
           const url = new URL(window.location.href);
           url.searchParams.set("board", boardId);
           history.replaceState({}, "", url.toString());
@@ -266,6 +278,11 @@
       async loadAndRenderCurrent() {
         const s = App.boardPage.state;
         const boardId = s.boardIds[s.boardIndex];
+        
+        if (s.unsubscribe) {
+          s.unsubscribe();
+          s.unsubscribe = null;
+        }
 
         const [session, board] = await Promise.all([
           App.data.getSession(s.sessionId),
@@ -304,42 +321,56 @@
         // Resolve items
         const itemIds = (board.tiles || []).map(t => t.itemId);
         const items = await App.data.getItemsByIds(itemIds);
-        const itemById = new Map(items.map(i => [i.id, i]));
+        const itemById = new Map(items.map(i => [i.id, i]))
+
+        let stampState = await App.stamps.get(s.sessionId, s.teamId, board.id);
 
         grid.innerHTML = "";
-        (board.tiles || []).forEach((tile, idx) => {
-          const item = itemById.get(tile.itemId) || { name: "Unknown Item", description: "", category: "N/A" };
+
+        const tiles = board.tiles || [];
+
+        for (let idx = 0; idx < tiles.length; idx++) {
+          const tile = tiles[idx];
+          const item = itemById.get(tile.itemId) || {
+            name: "Unknown Item",
+            description: "",
+            category: "N/A"
+          };
 
           const el = document.createElement("button");
           el.type = "button";
           el.className = "tile";
           el.setAttribute("role", "gridcell");
-          el.setAttribute("aria-label", `${item.name}. Click to toggle stamp.`);
+          el.setAttribute("aria-label", `${item.name}. Stamped status shown by host.`);
 
-          const isStamped = App.stamps.isStamped(s.sessionId, s.teamId, board.id, idx);
+          const isStamped = !!stampState[String(idx)];
           if (isStamped) el.classList.add("is-stamped");
 
           el.innerHTML = `
-            <div class="tile__top">
-              <div class="tile__name">${App.util.escapeHtml(item.name)}</div>
-              <div class="tile__tag">${App.util.escapeHtml(item.category || "Item")}</div>
-            </div>
-            <div class="tile__body">
-              <div class="tile__desc">${App.util.escapeHtml(item.description || "")}</div>
-              <div class="tile__icon" aria-hidden="true"></div>
-            </div>
-            <div class="tile__stamp" aria-hidden="true"></div>
-          `;
-
-          el.addEventListener("click", () => {
-            const now = App.stamps.toggle(s.sessionId, s.teamId, board.id, idx);
-            el.classList.toggle("is-stamped", now);
-          });
+              <div class="tile__top">
+                <div class="tile__name">${App.util.escapeHtml(item.name)}</div>
+                <div class="tile__tag">${App.util.escapeHtml(item.category || "Item")}</div>
+              </div>
+              <div class="tile__body">
+                <div class="tile__desc">${App.util.escapeHtml(item.description || "")}</div>
+                <div class="tile__icon" aria-hidden="true"></div>
+              </div>
+              <div class="tile__stamp" aria-hidden="true"></div>
+            `;
 
           grid.appendChild(el);
+        }
+        s.unsubscribe = App.stamps.subscribe(s.sessionId, s.teamId, board.id, (nextStampState) => {
+          const tileEls = grid.querySelectorAll(".tile");
+          tileEls.forEach((tileEl, idx) => {
+            tileEl.classList.toggle("is-stamped", !!nextStampState[String(idx)]);
+          });
         });
       }
+      
+      
     },
+    
 
     // ---------- Landing page ----------
     landingPage: {

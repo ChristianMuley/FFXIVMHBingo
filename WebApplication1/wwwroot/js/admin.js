@@ -38,8 +38,7 @@
       const btn = $("#resetLocalBtn");
       if (!btn) return;
       btn.addEventListener("click", () => {
-        window.App.stamps.resetAll();
-        Admin.refreshBoardsPane();
+        console.warn("Global reset is disabled for Firebase right now.");
       });
     },
 
@@ -126,7 +125,7 @@
       const team = (session.teams || []).find(t => t.id === teamId);
 
       $("#adminTitle").textContent = `${team.name} — Admin`;
-      $("#adminMeta").textContent = `${session.name} • Team code: ${team.code} • Local stamps`;
+      $("#adminMeta").textContent = `${session.name} • Team code: ${team.code} • Firebase stamps`;
 
       const boards = await window.App.data.getBoardsForTeam(sessionId, teamId);
       const pane = $("#boardsPane");
@@ -140,48 +139,54 @@
       const { items } = await window.App.data.items();
       const itemById = new Map(items.map(i => [i.id, i]));
 
-      boards.forEach(board => {
+      for (const board of boards) {
         const card = document.createElement("div");
         card.className = "board-card";
 
         const head = document.createElement("div");
         head.className = "board-card__head";
         head.innerHTML = `
-          <div>
-            <div class="board-card__title">${window.App.util.escapeHtml(board.name)}</div>
-            <div class="board-card__meta">Zone: ${window.App.util.escapeHtml(board.zone.name)} • ${board.size}×${board.size}</div>
-          </div>
-          <a class="link" href="${Admin.boardLink(sessionId, teamId, board.id)}">Open board</a>
-        `;
+    <div>
+      <div class="board-card__title">${window.App.util.escapeHtml(board.name)}</div>
+      <div class="board-card__meta">Zone: ${window.App.util.escapeHtml(board.zone.name)} • ${board.size}×${board.size}</div>
+    </div>
+    <a class="link" href="${Admin.boardLink(sessionId, teamId, board.id)}">Open board</a>
+  `;
 
         const grid = document.createElement("div");
         grid.className = "admin-grid";
         grid.style.setProperty("--gridSize", String(board.size || 5));
 
-        (board.tiles || []).forEach((tile, idx) => {
+        const stampState = await window.App.stamps.get(sessionId, teamId, board.id);
+        const tiles = board.tiles || [];
+
+        for (let idx = 0; idx < tiles.length; idx++) {
+          const tile = tiles[idx];
           const item = itemById.get(tile.itemId) || { name: "Unknown Item", description: "" };
+
           const tileEl = document.createElement("div");
           tileEl.className = "admin-tile";
-          const stamped = window.App.stamps.isStamped(sessionId, teamId, board.id, idx);
+
+          const stamped = !!stampState[String(idx)];
           tileEl.classList.toggle("is-stamped", stamped);
 
           tileEl.innerHTML = `
-            <div class="admin-tile__name">${window.App.util.escapeHtml(item.name)}</div>
-            <div class="admin-tile__desc">${window.App.util.escapeHtml(item.description || "")}</div>
-          `;
+      <div class="admin-tile__name">${window.App.util.escapeHtml(item.name)}</div>
+      <div class="admin-tile__desc">${window.App.util.escapeHtml(item.description || "")}</div>
+    `;
 
-          tileEl.addEventListener("click", () => {
-            const now = window.App.stamps.toggle(sessionId, teamId, board.id, idx);
+          tileEl.addEventListener("click", async () => {
+            const now = await window.App.stamps.toggle(sessionId, teamId, board.id, idx);
             tileEl.classList.toggle("is-stamped", now);
           });
 
           grid.appendChild(tileEl);
-        });
+        }
 
         card.appendChild(head);
         card.appendChild(grid);
         pane.appendChild(card);
-      });
+      }
     },
 
     boardLink(sessionId, teamId, boardId) {
