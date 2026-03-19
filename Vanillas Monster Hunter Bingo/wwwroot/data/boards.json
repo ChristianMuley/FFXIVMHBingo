@@ -4,7 +4,7 @@
     {
       "id": "b_arr_01",
       "sessionId": "s1",
-      "name": "ARR — Gathering & Basics",
+      "name": "ARR - Gathering & Basics",
       "era": "ARR",
       "zone": { "id": "z_gridania", "name": "New Gridania", "cssClass": "zone--gridania" },
       "size": 5,
@@ -44,7 +44,7 @@
     {
       "id": "b_arr_02",
       "sessionId": "s1",
-      "name": "ARR — City-State Circuit",
+      "name": "ARR - City-State Circuit",
       "era": "ARR",
       "zone": { "id": "z_ul_dah", "name": "Ul'dah", "cssClass": "zone--ul-dah" },
       "size": 5,

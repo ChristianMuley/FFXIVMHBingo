@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1\WebApplication1.csproj", "{C1E5BF88-5575-4943-BD87-66EBCC0F17E2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanillas Monster Hunter Bingo", "Vanillas Monster Hunter Bingo\Vanillas Monster Hunter Bingo.csproj", "{C1E5BF88-5575-4943-BD87-66EBCC0F17E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

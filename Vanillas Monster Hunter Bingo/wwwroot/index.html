@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Monster Hunter Bingo — Prototype</title>
+  <title>Vanilla's Monster Hunter Bingo - ALPHA Prototype v0.5</title>
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
       <div class="brand__mark" aria-hidden="true">MH</div>
       <div class="brand__text">
         <div class="brand__title">Monster Hunter Bingo</div>
-        <div class="brand__subtitle">Frontend-first prototype (no backend)</div>
+        <div class="brand__subtitle">I like birds</div>
       </div>
     </div>
     <nav class="topbar__nav">
@@ -27,7 +27,7 @@
     <div class="hero__left">
       <h1 class="m0">Enter your Team Code</h1>
       <p class="muted">
-        This prototype validates against <code>data/sessions.json</code> and redirects to a team board.
+        If you don't have a team code, ask Vanilla for one.
       </p>
 
       <form id="teamForm" class="form" autocomplete="off">
@@ -48,7 +48,7 @@
         </div>
 
         <div id="teamHelp" class="help muted">
-          Tip: try <code>ALPHA</code>, <code>BRAVO</code>, or <code>CHARLIE</code>
+          Hello Kira, please use the code: <code>TEST</code>
         </div>
 
         <div id="formStatus" class="status" role="status" aria-live="polite"></div>
@@ -60,13 +60,13 @@
         <div class="mini-card">
           <div class="mini-card__title">What this is</div>
           <div class="mini-card__body muted">
-            A lightweight, framework-free bingo board UI. Data is mock JSON only; stamps are local.
+            You get bingo board. You hunt items. You get bingo. You make win.
           </div>
         </div>
         <div class="mini-card">
           <div class="mini-card__title">Items</div>
           <div class="mini-card__body muted">
-            Board tiles are populated with <strong>FFXIV</strong> items (not Monster Hunter).
+            Board tiles are populated with <strong>FFXIV</strong> items. Items closer to the center are more valuable.
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@
 
     <div class="hero__right">
       <div class="preview">
-        <div class="preview__title">Preview</div>
+        <div class="preview__title">Idk what to put here yet</div>
         <div class="preview__box" aria-hidden="true">
           <div class="preview__bg"></div>
           <div class="preview__frame"></div>
@@ -87,7 +87,7 @@
           </div>
         </div>
         <div class="muted small">
-          Board visuals are layered: zone background + frame + interactive overlay.
+          testing text yaes
         </div>
       </div>
     </div>
@@ -96,10 +96,11 @@
 
 <footer class="footer container">
   <div class="muted small">
-    Prototype only — no backend; use a static server to load JSON.
+    Made with ♥ by Vanilla Cream'
   </div>
 </footer>
 
+<script type="module" src="js/firebase-init.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,162 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vanilla's Monster Hunter Bingo — Admin</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">MH</div>
+      <div class="brand__text">
+        <div class="brand__title">Vanilla's Monster Hunter Bingo</div>
+        <div class="brand__subtitle">Admin</div>
+      </div>
+    </div>
+
+    <nav class="topbar__nav">
+      
+      <a class="link" href="index.html">Landing</a>
+      <a class="link" href="board.html">Board</a>
+      <a class="link" href="board-admin.html">Board Admin</a>
+      <button id="adminLogoutBtn" class="btn btn--small" type="button">Log out</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container admin admin--modern">
+  <aside class="admin-sidebar card">
+    <div class="sidebar-head">
+      <div>
+        <div class="sidebar-title">Session & Teams</div>
+        <div class="muted small">Manage sessions and teams</div>
+      </div>
+    </div>
+
+    <!-- SESSION SECTION -->
+    <section class="sidebar-section">
+      <div class="section-head">
+        <div class="label">Current Session</div>
+        <div class="section-actions">
+          <button id="toggleCreateSessionBtn" class="icon-btn" type="button" aria-label="Create session">+</button>
+          <button id="toggleDeleteSessionBtn" class="icon-btn icon-btn--danger" type="button" aria-label="Delete current session">🗑</button>
+        </div>
+      </div>
+
+      <div id="currentSessionDisplay" class="session-display">
+        No session selected
+      </div>
+
+      <select id="sessionPicker" class="input" aria-label="Select session">
+        <option value="">Select a session</option>
+      </select>
+
+      <form id="createSessionForm" class="stack-sm compact-form" style="display:none;">
+        <input id="newSessionName" class="input" type="text" placeholder="Session name" />
+
+        <select id="newSessionEra" class="input">
+          <option value="ARR" selected>ARR</option>
+          <option value="HW">HW</option>
+          <option value="SB">SB</option>
+          <option value="ShB">ShB</option>
+          <option value="EW">EW</option>
+          <option value="DT">DT</option>
+          <option value="__custom__">Custom</option>
+        </select>
+
+        <input id="newSessionEraCustom" class="input" type="text" placeholder="Custom era" style="display:none;" />
+
+        <div class="inline-actions">
+          <button class="btn btn--primary btn--small" type="submit">Create</button>
+          <button id="cancelCreateSessionBtn" class="btn btn--small" type="button">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TEAM SECTION -->
+    <section class="sidebar-section">
+      <div class="section-head">
+        <div class="label">Teams</div>
+        <div class="section-actions">
+          <button id="toggleCreateTeamBtn" class="icon-btn" type="button" aria-label="Create team">+</button>
+          <button id="toggleDeleteTeamBtn" class="icon-btn icon-btn--danger" type="button" aria-label="Delete selected team">🗑</button>
+        </div>
+      </div>
+
+      <form id="createTeamForm" class="stack-sm compact-form" style="display:none;">
+        <input id="newTeamName" class="input" type="text" placeholder="Team name" />
+        <input id="newTeamCode" class="input" type="text" placeholder="Team code" />
+        <input id="newTeamRegion" class="input" type="text" placeholder="Region" />
+
+        <div class="inline-actions">
+          <button class="btn btn--primary btn--small" type="submit">Create</button>
+          <button id="cancelCreateTeamBtn" class="btn btn--small" type="button">Cancel</button>
+        </div>
+      </form>
+
+      <div id="teamList" class="list" role="listbox" aria-label="Teams"></div>
+
+      <div class="help muted small">
+        Select a session, then a team to load its boards.
+      </div>
+    </section>
+  </aside>
+
+  <section class="admin-main card">
+    <div class="admin-head admin-head--compact">
+      <div>
+        <h1 id="adminTitle" class="m0">Admin</h1>
+        <div id="adminMeta" class="muted">Loading…</div>
+      </div>
+
+      <div class="admin-actions">
+        <button id="resetLocalBtn" class="btn btn--danger btn--small" type="button">Reset Stamps</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="boardsPane" class="boards-pane">
+      <div class="empty-state muted">
+        Choose a session and team to view their boards.
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- REUSABLE CONFIRM MODAL -->
+<div id="confirmModal" class="modal-backdrop" style="display:none;">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-card__head">
+      <h2 id="confirmModalTitle" class="m0">Are you sure?</h2>
+    </div>
+
+    <div class="modal-card__body">
+      <p id="confirmModalMessage" class="muted">
+        This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="modal-card__actions">
+      <button id="confirmModalCancelBtn" class="btn btn--small" type="button">Cancel</button>
+      <button id="confirmModalConfirmBtn" class="btn btn--danger btn--small" type="button">Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer container">
+  <div class="muted small">
+    Admin stamping is stored in Firebase.
+  </div>
+</footer>
+
+<script type="module" src="js/firebase-init.js"></script>
+<script src="js/admin-auth-guard.js"></script>
+<script src="js/app.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

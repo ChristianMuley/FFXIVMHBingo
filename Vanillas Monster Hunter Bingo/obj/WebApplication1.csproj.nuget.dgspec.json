@@ -1,26 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Chris\\RiderProjects\\FFXIV MH Bingo\\WebApplication1\\WebApplication1.csproj": {}
+    "C:\\Users\\chris\\RiderProjects\\FFXIVMHBingo\\WebApplication1\\WebApplication1.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Chris\\RiderProjects\\FFXIV MH Bingo\\WebApplication1\\WebApplication1.csproj": {
+    "C:\\Users\\chris\\RiderProjects\\FFXIVMHBingo\\WebApplication1\\WebApplication1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Chris\\RiderProjects\\FFXIV MH Bingo\\WebApplication1\\WebApplication1.csproj",
-        "projectName": "WebApplication1",
-        "projectPath": "C:\\Users\\Chris\\RiderProjects\\FFXIV MH Bingo\\WebApplication1\\WebApplication1.csproj",
-        "packagesPath": "C:\\Users\\Chris\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Chris\\RiderProjects\\FFXIV MH Bingo\\WebApplication1\\obj\\",
+        "projectUniqueName": "C:\\Users\\chris\\RiderProjects\\FFXIVMHBingo\\WebApplication1\\WebApplication1.csproj",
+        "projectName": "Vanillas Monster Hunter Bingo",
+        "projectPath": "C:\\Users\\chris\\RiderProjects\\FFXIVMHBingo\\WebApplication1\\WebApplication1.csproj",
+        "packagesPath": "C:\\Users\\chris\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\chris\\RiderProjects\\FFXIVMHBingo\\WebApplication1\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Chris\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\chris\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -63,7 +62,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "c:\\program files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -4,8 +4,16 @@ import {
     ref,
     get,
     set,
-    onValue
+    onValue,
+    push,
+    remove
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCto4mDkE1M40yPoeXO-s-VabQ2s_HIuYU",
@@ -20,12 +28,23 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
 window.FirebaseApp = app;
 window.FirebaseDb = db;
+window.FirebaseAuth = auth;
+
 window.FirebaseDbApi = {
     ref,
     get,
     set,
-    onValue
+    onValue,
+    push,
+    remove
+};
+
+window.FirebaseAuthApi = {
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
 };

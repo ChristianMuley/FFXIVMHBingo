@@ -92,27 +92,65 @@
       },
 
       async getSession(sessionId) {
+        if (App.sessionStore) {
+          const sessions = await App.sessionStore.getSessions();
+          const session = sessions.find(s => s.id === sessionId);
+          if (session) return session;
+        }
+
         const { sessions } = await App.data.sessions();
         return sessions.find(s => s.id === sessionId) || null;
       },
 
+      async getTeam(sessionId, teamId) {
+        if (App.sessionStore) {
+          const teams = await App.sessionStore.getTeams(sessionId);
+          const team = teams.find(t => t.id === teamId);
+          if (team) return team;
+        }
+
+        const { sessions } = await App.data.sessions();
+        const session = sessions.find(s => s.id === sessionId);
+        return (session?.teams || []).find(t => t.id === teamId) || null;
+      },
+
       async findTeamByCode(teamCode) {
         const code = App.util.normCode(teamCode);
+
+        if (App.sessionStore) {
+          const sessions = await App.sessionStore.getSessions();
+
+          for (const s of sessions) {
+            const teams = await App.sessionStore.getTeams(s.id);
+            const team = teams.find(t => App.util.normCode(t.code) === code);
+            if (team) return { session: s, team };
+          }
+        }
+
         const { sessions } = await App.data.sessions();
         for (const s of sessions) {
           const team = (s.teams || []).find(t => App.util.normCode(t.code) === code);
           if (team) return { session: s, team };
         }
+
         return null;
       },
 
       async getBoardsForSession(sessionId) {
         const { boards } = await App.data.boards();
-        return boards.filter(b => b.sessionId === sessionId);
+        return boards;
       },
 
       async getBoardsForTeam(sessionId, teamId) {
         const all = await App.data.getBoardsForSession(sessionId);
+
+        if (App.boardAssignments) {
+          const assignedIds = await App.boardAssignments.getAssignedBoardIds(sessionId, teamId);
+          if (assignedIds.length > 0) {
+            return all.filter(b => assignedIds.includes(b.id));
+          }
+        }
+
         return all.filter(b => (b.teams || []).includes(teamId));
       },
 
@@ -181,6 +219,140 @@
       }
     },
 
+    // ---------- Firebase session/team store ----------
+    sessionStore: {
+      sessionPath(sessionId = "") {
+        return sessionId ? `sessions/${sessionId}` : "sessions";
+      },
+
+      teamPath(sessionId, teamId = "") {
+        return teamId ? `teams/${sessionId}/${teamId}` : `teams/${sessionId}`;
+      },
+
+      dbRef(path) {
+        if (!window.FirebaseDb || !window.FirebaseDbApi) {
+          throw new Error("Firebase not initialized.");
+        }
+
+        const { ref } = window.FirebaseDbApi;
+        return ref(window.FirebaseDb, path);
+      },
+
+      async getSessions() {
+        const { get } = window.FirebaseDbApi;
+        const snapshot = await get(App.sessionStore.dbRef(App.sessionStore.sessionPath()));
+        const obj = snapshot.exists() ? (snapshot.val() || {}) : {};
+        return Object.values(obj);
+      },
+
+      async getTeams(sessionId) {
+        const { get } = window.FirebaseDbApi;
+        const snapshot = await get(App.sessionStore.dbRef(App.sessionStore.teamPath(sessionId)));
+        const obj = snapshot.exists() ? (snapshot.val() || {}) : {};
+        return Object.values(obj);
+      },
+
+      async createSession(data) {
+        const { push, set } = window.FirebaseDbApi;
+        const sessionsRef = App.sessionStore.dbRef(App.sessionStore.sessionPath());
+        const newRef = push(sessionsRef);
+        const id = newRef.key;
+
+        const session = {
+          id,
+          name: data.name || "New Session",
+          era: data.era || "ARR",
+          status: data.status || "active"
+        };
+
+        await set(newRef, session);
+        return session;
+      },
+
+      async createTeam(sessionId, data) {
+        const { push, set } = window.FirebaseDbApi;
+        const teamsRef = App.sessionStore.dbRef(App.sessionStore.teamPath(sessionId));
+        const newRef = push(teamsRef);
+        const id = newRef.key;
+
+        const team = {
+          id,
+          name: data.name || "New Team",
+          code: data.code || "TEAM",
+          region: data.region || "Unknown"
+        };
+
+        await set(newRef, team);
+        return team;
+      },
+
+      subscribeSessions(callback) {
+        const { onValue } = window.FirebaseDbApi;
+        return onValue(App.sessionStore.dbRef(App.sessionStore.sessionPath()), (snapshot) => {
+          const obj = snapshot.exists() ? (snapshot.val() || {}) : {};
+          callback(Object.values(obj));
+        });
+      },
+
+      subscribeTeams(sessionId, callback) {
+        const { onValue } = window.FirebaseDbApi;
+        return onValue(App.sessionStore.dbRef(App.sessionStore.teamPath(sessionId)), (snapshot) => {
+          const obj = snapshot.exists() ? (snapshot.val() || {}) : {};
+          callback(Object.values(obj));
+        });
+      },
+      
+      async deleteTeam(sessionId, teamId) {
+        const { remove } = window.FirebaseDbApi;
+        await remove(App.sessionStore.dbRef(App.sessionStore.teamPath(sessionId, teamId)));
+      }
+    },
+
+
+    // ---------- Firebase board assignments ----------
+    // ---------- Firebase board assignments ----------
+    boardAssignments: {
+      path(sessionId, teamId, boardId = "") {
+        return boardId
+            ? `boardAssignments/${sessionId}/${teamId}/${boardId}`
+            : `boardAssignments/${sessionId}/${teamId}`;
+      },
+
+      dbRef(path) {
+        if (!window.FirebaseDb || !window.FirebaseDbApi) {
+          throw new Error("Firebase not initialized.");
+        }
+
+        const { ref } = window.FirebaseDbApi;
+        return ref(window.FirebaseDb, path);
+      },
+
+      async getAssignedBoardIds(sessionId, teamId) {
+        const { get } = window.FirebaseDbApi;
+        const snapshot = await get(
+            App.boardAssignments.dbRef(App.boardAssignments.path(sessionId, teamId))
+        );
+
+        const obj = snapshot.exists() ? (snapshot.val() || {}) : {};
+        return Object.keys(obj).filter(boardId => !!obj[boardId]);
+      },
+
+      async assignBoard(sessionId, teamId, boardId) {
+        const { set } = window.FirebaseDbApi;
+        await set(
+            App.boardAssignments.dbRef(App.boardAssignments.path(sessionId, teamId, boardId)),
+            true
+        );
+      },
+
+      async unassignBoard(sessionId, teamId, boardId) {
+        const { remove } = window.FirebaseDbApi;
+        await remove(
+            App.boardAssignments.dbRef(App.boardAssignments.path(sessionId, teamId, boardId))
+        );
+      }
+    },
+    
     // ---------- Board page rendering ----------
     boardPage: {
       state: {
@@ -190,6 +362,7 @@
         boardIds: [],
         boardIndex: 0,
         unsubscribe: null,
+        
       },
 
       async init() {
@@ -214,7 +387,7 @@
           return;
         }
 
-        const team = (session.teams || []).find(t => t.id === teamId) || null;
+        const team = await App.data.getTeam(sessionId, teamId);
         if (!team) {
           App.boardPage.renderError("Unknown team. Return to landing page.");
           return;
@@ -294,7 +467,11 @@
           return;
         }
 
-        const team = (session.teams || []).find(t => t.id === s.teamId);
+        const team = await App.data.getTeam(s.sessionId, s.teamId);
+        if (!team) {
+          App.boardPage.renderError("Unknown team. Return to landing page.");
+          return;
+        }
         const boardTitle = App.util.qs("#boardTitle");
         const boardSubtitle = App.util.qs("#boardSubtitle");
         const boardMeta = App.util.qs("#boardMeta");

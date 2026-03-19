@@ -1,0 +1,76 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Vanilla's Monster Hunter Bingo — Board Admin</title>
+    <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <div class="brand">
+            <div class="brand__mark" aria-hidden="true">MH</div>
+            <div class="brand__text">
+                <div class="brand__title">Vanilla's Monster Hunter Bingo</div>
+                <div class="brand__subtitle">Board Admin</div>
+            </div>
+        </div>
+
+        <nav class="topbar__nav">
+            <a class="link" href="index.html">Landing</a>
+            <a class="link" href="board.html">Board</a>
+            <a class="link" href="admin.html">Admin</a>
+            <button id="adminLogoutBtn" class="btn btn--small" type="button">Log out</button>
+        </nav>
+    </div>
+</header>
+
+<main class="container admin admin--modern">
+    <aside class="admin-sidebar card">
+        <div class="sidebar-head">
+            <div>
+                <div class="sidebar-title">Board Assignment</div>
+                <div class="muted small">Assign boards to teams</div>
+            </div>
+        </div>
+
+        <section class="sidebar-section">
+            <div class="label">Session</div>
+            <select id="baSessionPicker" class="input">
+                <option value="">Select a session</option>
+            </select>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="label">Team</div>
+            <select id="baTeamPicker" class="input">
+                <option value="">Select a team</option>
+            </select>
+        </section>
+    </aside>
+
+    <section class="admin-main card">
+        <div class="admin-head admin-head--compact">
+            <div>
+                <h1 id="baTitle" class="m0">Board Admin</h1>
+                <div id="baMeta" class="muted">Select a session and team.</div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="baBoardsPane" class="boards-pane">
+            <div class="empty-state muted">
+                No team selected yet.
+            </div>
+        </div>
+    </section>
+</main>
+
+<script type="module" src="js/firebase-init.js"></script>
+<script src="js/admin-auth-guard.js"></script>
+<script src="js/app.js"></script>
+<script src="js/board-admin.js"></script>
+</body>
+</html>
