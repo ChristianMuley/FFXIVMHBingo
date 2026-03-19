@@ -1,0 +1,165 @@
+﻿{
+  "schemaVersion": 1,
+  "boards": [
+    {
+      "id": "b_arr_01",
+      "sessionId": "s1",
+      "name": "ARR — Gathering & Basics",
+      "era": "ARR",
+      "zone": { "id": "z_gridania", "name": "New Gridania", "cssClass": "zone--gridania" },
+      "size": 5,
+      "teams": ["t_alpha", "t_bravo", "t_charlie"],
+      "tiles": [
+        { "itemId": "itm_potion" },
+        { "itemId": "itm_ether" },
+        { "itemId": "itm_maple_log" },
+        { "itemId": "itm_copper_ore" },
+        { "itemId": "itm_fire_shard" },
+
+        { "itemId": "itm_hi_potion" },
+        { "itemId": "itm_ice_shard" },
+        { "itemId": "itm_iron_ore" },
+        { "itemId": "itm_cotton_boll" },
+        { "itemId": "itm_wind_shard" },
+
+        { "itemId": "itm_elixir" },
+        { "itemId": "itm_earth_shard" },
+        { "itemId": "itm_oak_log" },
+        { "itemId": "itm_flax" },
+        { "itemId": "itm_bronze_ingot" },
+
+        { "itemId": "itm_aldgoat_leather" },
+        { "itemId": "itm_hard_leather" },
+        { "itemId": "itm_iron_ingot" },
+        { "itemId": "itm_spruce_log" },
+        { "itemId": "itm_silver_ore" },
+
+        { "itemId": "itm_mythril_ore" },
+        { "itemId": "itm_mythril_ingot" },
+        { "itemId": "itm_silk_thread" },
+        { "itemId": "itm_rare_drop_a" },
+        { "itemId": "itm_rare_drop_b" }
+      ]
+    },
+    {
+      "id": "b_arr_02",
+      "sessionId": "s1",
+      "name": "ARR — City-State Circuit",
+      "era": "ARR",
+      "zone": { "id": "z_ul_dah", "name": "Ul'dah", "cssClass": "zone--ul-dah" },
+      "size": 5,
+      "teams": ["t_alpha", "t_bravo"],
+      "tiles": [
+        { "itemId": "itm_copper_ore" },
+        { "itemId": "itm_bronze_ingot" },
+        { "itemId": "itm_iron_ore" },
+        { "itemId": "itm_iron_ingot" },
+        { "itemId": "itm_silver_ore" },
+
+        { "itemId": "itm_maple_log" },
+        { "itemId": "itm_oak_log" },
+        { "itemId": "itm_spruce_log" },
+        { "itemId": "itm_cotton_boll" },
+        { "itemId": "itm_flax" },
+
+        { "itemId": "itm_potion" },
+        { "itemId": "itm_hi_potion" },
+        { "itemId": "itm_ether" },
+        { "itemId": "itm_elixir" },
+        { "itemId": "itm_fire_shard" },
+
+        { "itemId": "itm_ice_shard" },
+        { "itemId": "itm_wind_shard" },
+        { "itemId": "itm_earth_shard" },
+        { "itemId": "itm_aldgoat_leather" },
+        { "itemId": "itm_hard_leather" },
+
+        { "itemId": "itm_silk_thread" },
+        { "itemId": "itm_mythril_ore" },
+        { "itemId": "itm_mythril_ingot" },
+        { "itemId": "itm_rare_drop_b" },
+        { "itemId": "itm_rare_drop_c" }
+      ]
+    },
+    {
+      "id": "b_arr_03",
+      "sessionId": "s1",
+      "name": "ARR — Seafarer Set",
+      "era": "ARR",
+      "zone": { "id": "z_limsa", "name": "Limsa Lominsa", "cssClass": "zone--limsa" },
+      "size": 5,
+      "teams": ["t_charlie"],
+      "tiles": [
+        { "itemId": "itm_potion" },
+        { "itemId": "itm_hi_potion" },
+        { "itemId": "itm_ether" },
+        { "itemId": "itm_elixir" },
+        { "itemId": "itm_wind_shard" },
+
+        { "itemId": "itm_fire_shard" },
+        { "itemId": "itm_ice_shard" },
+        { "itemId": "itm_earth_shard" },
+        { "itemId": "itm_maple_log" },
+        { "itemId": "itm_oak_log" },
+
+        { "itemId": "itm_spruce_log" },
+        { "itemId": "itm_cotton_boll" },
+        { "itemId": "itm_flax" },
+        { "itemId": "itm_silk_thread" },
+        { "itemId": "itm_aldgoat_leather" },
+
+        { "itemId": "itm_hard_leather" },
+        { "itemId": "itm_copper_ore" },
+        { "itemId": "itm_iron_ore" },
+        { "itemId": "itm_silver_ore" },
+        { "itemId": "itm_mythril_ore" },
+
+        { "itemId": "itm_bronze_ingot" },
+        { "itemId": "itm_iron_ingot" },
+        { "itemId": "itm_mythril_ingot" },
+        { "itemId": "itm_rare_drop_a" },
+        { "itemId": "itm_rare_drop_c" }
+      ]
+    },
+    {
+      "id": "b_hw_01",
+      "sessionId": "s2",
+      "name": "HW — Snowbound Supplies",
+      "era": "HW",
+      "zone": { "id": "z_coerthas", "name": "Coerthas", "cssClass": "zone--coerthas" },
+      "size": 5,
+      "teams": ["t_delta", "t_echo"],
+      "tiles": [
+        { "itemId": "itm_ice_shard" },
+        { "itemId": "itm_earth_shard" },
+        { "itemId": "itm_wind_shard" },
+        { "itemId": "itm_silver_ore" },
+        { "itemId": "itm_mythril_ore" },
+
+        { "itemId": "itm_mythril_ingot" },
+        { "itemId": "itm_iron_ingot" },
+        { "itemId": "itm_hard_leather" },
+        { "itemId": "itm_silk_thread" },
+        { "itemId": "itm_flax" },
+
+        { "itemId": "itm_potion" },
+        { "itemId": "itm_hi_potion" },
+        { "itemId": "itm_ether" },
+        { "itemId": "itm_elixir" },
+        { "itemId": "itm_fire_shard" },
+
+        { "itemId": "itm_maple_log" },
+        { "itemId": "itm_oak_log" },
+        { "itemId": "itm_spruce_log" },
+        { "itemId": "itm_cotton_boll" },
+        { "itemId": "itm_aldgoat_leather" },
+
+        { "itemId": "itm_rare_drop_a" },
+        { "itemId": "itm_rare_drop_b" },
+        { "itemId": "itm_rare_drop_c" },
+        { "itemId": "itm_iron_ore" },
+        { "itemId": "itm_copper_ore" }
+      ]
+    }
+  ]
+}

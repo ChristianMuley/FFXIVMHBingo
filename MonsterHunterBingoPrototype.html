@@ -1,0 +1,97 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monster Hunter Bingo (Prototype)</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">MH</div>
+        <div class="brand__text">
+          <div class="brand__title">Monster Hunter Bingo</div>
+          <div class="brand__subtitle">Frontend-first prototype (no backend)</div>
+        </div>
+      </div>
+      <nav class="topbar__nav">
+        <a class="link" href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card hero">
+      <div class="hero__left">
+        <h1>Enter your Team Code</h1>
+        <p class="muted">
+          This prototype validates against mock JSON data and then redirects to a team board.
+        </p>
+
+        <form id="teamForm" class="form" autocomplete="off">
+          <label class="label" for="teamCode">Team code</label>
+          <div class="row">
+            <input
+              id="teamCode"
+              name="teamCode"
+              class="input"
+              type="text"
+              placeholder="e.g., ALPHA"
+              inputmode="latin"
+              maxlength="24"
+              aria-describedby="teamHelp"
+              required
+            />
+            <button class="btn btn--primary" type="submit">Join</button>
+          </div>
+          <div id="teamHelp" class="help muted">
+            Tip: try <code>ALPHA</code>, <code>BRAVO</code>, or <code>CHARLIE</code>
+          </div>
+
+          <div id="formStatus" class="status" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="divider"></div>
+
+        <div class="grid2">
+          <div class="mini-card">
+            <h3>What’s included</h3>
+            <ul class="list">
+              <li>Landing → team code → board redirect</li>
+              <li>Board uses background + frame + overlay tiles</li>
+              <li>Admin UI to toggle stamps locally</li>
+              <li>Reusable data model for later expansions</li>
+            </ul>
+          </div>
+          <div class="mini-card">
+            <h3>Notes</h3>
+            <p class="muted">
+              No accounts, no server, no persistence beyond your browser’s local storage for admin stamp toggles.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__right">
+        <div class="poster">
+          <div class="poster__frame">
+            <div class="poster__title">Prototype Preview</div>
+            <div class="poster__art" aria-hidden="true"></div>
+            <div class="poster__caption muted">
+              Board visuals are simple CSS (no external images required).
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container">
+    <div class="muted">© Prototype — mock data only.</div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

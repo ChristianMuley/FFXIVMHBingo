@@ -1,0 +1,105 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monster Hunter Bingo — Prototype</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">MH</div>
+      <div class="brand__text">
+        <div class="brand__title">Monster Hunter Bingo</div>
+        <div class="brand__subtitle">Frontend-first prototype (no backend)</div>
+      </div>
+    </div>
+    <nav class="topbar__nav">
+      <a class="link" href="admin.html">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card hero">
+    <div class="hero__left">
+      <h1 class="m0">Enter your Team Code</h1>
+      <p class="muted">
+        This prototype validates against <code>data/sessions.json</code> and redirects to a team board.
+      </p>
+
+      <form id="teamForm" class="form" autocomplete="off">
+        <label class="label" for="teamCode">Team code</label>
+        <div class="row">
+          <input
+            id="teamCode"
+            name="teamCode"
+            class="input"
+            type="text"
+            placeholder="e.g., ALPHA"
+            inputmode="latin"
+            maxlength="24"
+            aria-describedby="teamHelp"
+            required
+          />
+          <button class="btn btn--primary" type="submit">Join</button>
+        </div>
+
+        <div id="teamHelp" class="help muted">
+          Tip: try <code>ALPHA</code>, <code>BRAVO</code>, or <code>CHARLIE</code>
+        </div>
+
+        <div id="formStatus" class="status" role="status" aria-live="polite"></div>
+      </form>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div class="mini-card">
+          <div class="mini-card__title">What this is</div>
+          <div class="mini-card__body muted">
+            A lightweight, framework-free bingo board UI. Data is mock JSON only; stamps are local.
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card__title">Items</div>
+          <div class="mini-card__body muted">
+            Board tiles are populated with <strong>FFXIV</strong> items (not Monster Hunter).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__right">
+      <div class="preview">
+        <div class="preview__title">Preview</div>
+        <div class="preview__box" aria-hidden="true">
+          <div class="preview__bg"></div>
+          <div class="preview__frame"></div>
+          <div class="preview__grid">
+            <div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div>
+            <div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div>
+            <div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div>
+            <div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div>
+            <div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div><div class="pcell"></div>
+          </div>
+        </div>
+        <div class="muted small">
+          Board visuals are layered: zone background + frame + interactive overlay.
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer container">
+  <div class="muted small">
+    Prototype only — no backend; use a static server to load JSON.
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>

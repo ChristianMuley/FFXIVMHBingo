@@ -1,0 +1,26 @@
+﻿{
+  "schemaVersion": 1,
+  "sessions": [
+    {
+      "id": "s1",
+      "name": "Spring Sprint",
+      "era": "ARR",
+      "status": "Active",
+      "teams": [
+        { "id": "t_alpha", "code": "ALPHA", "name": "Alpha Team", "region": "NA" },
+        { "id": "t_bravo", "code": "BRAVO", "name": "Bravo Team", "region": "EU" },
+        { "id": "t_charlie", "code": "CHARLIE", "name": "Charlie Team", "region": "JP" }
+      ]
+    },
+    {
+      "id": "s2",
+      "name": "Winter Run",
+      "era": "HW",
+      "status": "Draft",
+      "teams": [
+        { "id": "t_delta", "code": "DELTA", "name": "Delta Team", "region": "NA" },
+        { "id": "t_echo", "code": "ECHO", "name": "Echo Team", "region": "EU" }
+      ]
+    }
+  ]
+}

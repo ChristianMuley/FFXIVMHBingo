@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monster Hunter Bingo — Admin</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">MH</div>
+      <div class="brand__text">
+        <div class="brand__title">Monster Hunter Bingo</div>
+        <div class="brand__subtitle">Admin (local-only stamps)</div>
+      </div>
+    </div>
+
+    <nav class="topbar__nav">
+      <a class="link" href="index.html">Landing</a>
+      <a class="link" href="board.html">Board</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container admin">
+  <aside class="admin-sidebar card">
+    <div class="sidebar-head">
+      <div class="sidebar-title">Sessions & Teams</div>
+      <div class="muted small">Mock data only</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="label small">Sessions</div>
+      <div id="sessionList" class="list" role="listbox" aria-label="Sessions"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="label small">Teams</div>
+      <div id="teamList" class="list" role="listbox" aria-label="Teams"></div>
+      <div class="help muted small">
+        Select a session, then a team to load its boards.
+      </div>
+    </div>
+  </aside>
+
+  <section class="admin-main card">
+    <div class="admin-head">
+      <div>
+        <h1 id="adminTitle" class="m0">Admin</h1>
+        <div id="adminMeta" class="muted">Loading…</div>
+      </div>
+      <div class="admin-actions">
+        <button id="resetLocalBtn" class="btn btn--danger" type="button">Reset Local Stamps</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="boardsPane" class="boards-pane">
+      <div class="empty-state muted">
+        Choose a session and team to view their boards.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer container">
+  <div class="muted small">
+    Admin stamping is local; no server persistence yet.
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

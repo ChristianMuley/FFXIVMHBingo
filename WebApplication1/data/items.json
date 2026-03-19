@@ -1,0 +1,39 @@
+﻿{
+  "schemaVersion": 1,
+  "source": "Mock FFXIV item list for prototype UI",
+  "items": [
+    { "id": "itm_potion", "name": "Potion", "category": "Consumable", "description": "Restores a small amount of HP." },
+    { "id": "itm_hi_potion", "name": "Hi-Potion", "category": "Consumable", "description": "Restores a moderate amount of HP." },
+    { "id": "itm_ether", "name": "Ether", "category": "Consumable", "description": "Restores a small amount of MP." },
+    { "id": "itm_elixir", "name": "Elixir", "category": "Consumable", "description": "Restores HP and MP." },
+
+    { "id": "itm_iron_ore", "name": "Iron Ore", "category": "Gathering", "description": "A decent-sized piece of rock containing the metal iron." },
+    { "id": "itm_copper_ore", "name": "Copper Ore", "category": "Gathering", "description": "A rock containing copper, prized by smiths for its workability." },
+    { "id": "itm_silver_ore", "name": "Silver Ore", "category": "Gathering", "description": "A glimmering ore containing silver." },
+    { "id": "itm_mythril_ore", "name": "Mythril Ore", "category": "Gathering", "description": "A rare ore containing mythril." },
+
+    { "id": "itm_maple_log", "name": "Maple Log", "category": "Gathering", "description": "Timber cut from a maple tree." },
+    { "id": "itm_oak_log", "name": "Oak Log", "category": "Gathering", "description": "Hard timber cut from an oak tree." },
+    { "id": "itm_spruce_log", "name": "Spruce Log", "category": "Gathering", "description": "A log harvested from a spruce tree." },
+
+    { "id": "itm_cotton_boll", "name": "Cotton Boll", "category": "Crafting", "description": "A tuft of soft cotton fibers." },
+    { "id": "itm_flax", "name": "Flax", "category": "Crafting", "description": "Plant fibers used in textile production." },
+    { "id": "itm_silk_thread", "name": "Silk Thread", "category": "Crafting", "description": "Fine thread spun from silk." },
+
+    { "id": "itm_aldgoat_leather", "name": "Aldgoat Leather", "category": "Crafting", "description": "Durable leather processed from aldgoat hide." },
+    { "id": "itm_hard_leather", "name": "Hard Leather", "category": "Crafting", "description": "Sturdy leather suitable for armor." },
+
+    { "id": "itm_bronze_ingot", "name": "Bronze Ingot", "category": "Crafting", "description": "A bar of bronze ready for forging." },
+    { "id": "itm_iron_ingot", "name": "Iron Ingot", "category": "Crafting", "description": "A bar of iron ready for forging." },
+    { "id": "itm_mythril_ingot", "name": "Mythril Ingot", "category": "Crafting", "description": "A bar of mythril used in high-quality equipment." },
+
+    { "id": "itm_fire_shard", "name": "Fire Shard", "category": "Crystal", "description": "A tiny crystal filled with fire-aspected aether." },
+    { "id": "itm_ice_shard", "name": "Ice Shard", "category": "Crystal", "description": "A tiny crystal filled with ice-aspected aether." },
+    { "id": "itm_wind_shard", "name": "Wind Shard", "category": "Crystal", "description": "A tiny crystal filled with wind-aspected aether." },
+    { "id": "itm_earth_shard", "name": "Earth Shard", "category": "Crystal", "description": "A tiny crystal filled with earth-aspected aether." },
+
+    { "id": "itm_rare_drop_a", "name": "Allagan Bronze Piece", "category": "Treasure", "description": "An antique coin used as currency by collectors." },
+    { "id": "itm_rare_drop_b", "name": "Allagan Silver Piece", "category": "Treasure", "description": "An antique coin minted in a bygone era." },
+    { "id": "itm_rare_drop_c", "name": "Allagan Gold Piece", "category": "Treasure", "description": "A valuable antique coin prized by collectors." }
+  ]
+}

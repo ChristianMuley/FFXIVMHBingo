@@ -1,0 +1,76 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monster Hunter Bingo — Board</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar__inner">
+    <div class="brand">
+      <div class="brand__mark" aria-hidden="true">MH</div>
+      <div class="brand__text">
+        <div class="brand__title">Monster Hunter Bingo</div>
+        <div id="boardSubtitle" class="brand__subtitle">Board</div>
+      </div>
+    </div>
+
+    <nav class="topbar__nav">
+      <a class="link" href="index.html">Change Team</a>
+      <a class="link" href="admin.html">Admin</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="board-head">
+      <div>
+        <h1 id="boardTitle" class="m0">Team Board</h1>
+        <div id="boardMeta" class="muted">Loading…</div>
+      </div>
+
+      <div class="board-actions">
+        <button id="prevBoardBtn" class="btn" type="button">Prev</button>
+        <button id="nextBoardBtn" class="btn" type="button">Next</button>
+      </div>
+    </div>
+
+    <div id="boardStage" class="board-stage" aria-label="Bingo board">
+      <!-- Background layer -->
+      <div id="zoneBg" class="board-bg" aria-hidden="true"></div>
+
+      <!-- Frame layer (static “image” simulated by CSS) -->
+      <div class="board-frame" aria-hidden="true"></div>
+
+      <!-- Overlay: grid tiles -->
+      <div id="boardGrid" class="board-grid" role="grid" aria-label="Board tiles"></div>
+    </div>
+
+    <div class="board-legend">
+      <div class="legend">
+        <span class="legend__dot legend__dot--stamped" aria-hidden="true"></span>
+        <span class="muted">Stamped (local to this browser)</span>
+      </div>
+      <div class="legend">
+        <span class="legend__dot legend__dot--unstamped" aria-hidden="true"></span>
+        <span class="muted">Unstamped</span>
+      </div>
+      <div class="muted small">
+        Click tiles to stamp/unstamp. This is stored in <code>localStorage</code> only.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer container">
+  <div class="muted small">
+    Data: <code>data/sessions.json</code>, <code>data/boards.json</code>, <code>data/items.json</code>.
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
