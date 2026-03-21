@@ -1,4 +1,4 @@
-﻿/* admin.js — Admin UI
+/* admin.js — Admin UI
    - Session picker + current session display
    - Create/delete session
    - Create/delete team
@@ -14,17 +14,22 @@
     state: {
       sessionId: null,
       teamId: null,
-      unsubscribes: [],
+      boardUnsubscribes: [],
       unsubscribeSessions: null,
       unsubscribeTeams: null,
-      modalAction: null
+      modalAction: null,
+      pendingActions: new Set()
     },
 
     async init() {
       const picker = $("#sessionPicker");
       if (!picker) return;
 
-      $("#adminMeta").textContent = "Loading sessions…";
+      if (window.App?.stampFx) {
+        window.App.stampFx.armOnInteraction();
+      }
+
+      Admin.setMeta("Loading sessions…");
 
       Admin.renderSessions();
       Admin.wireReset();
@@ -37,25 +42,84 @@
       Admin.wireModal();
 
       const sessions = await window.App.sessionStore.getSessions();
-      const firstSession = sessions[0];
-      if (firstSession) {
-        await Admin.selectSession(firstSession.id);
+      const firstSession = sessions[0] || null;
 
-        const teams = await window.App.sessionStore.getTeams(firstSession.id);
-        const firstTeam = teams[0];
-        if (firstTeam) {
-          await Admin.selectTeam(firstTeam.id);
-        }
-      } else {
-        $("#adminMeta").textContent = "No sessions yet.";
+      if (!firstSession) {
+        Admin.setMeta("No sessions yet.");
+        return;
+      }
+
+      await Admin.selectSession(firstSession.id);
+
+      const teams = await window.App.sessionStore.getTeams(firstSession.id);
+      const firstTeam = teams[0] || null;
+      if (firstTeam) {
+        await Admin.selectTeam(firstTeam.id);
       }
     },
 
-    clearSubscriptions() {
-      Admin.state.unsubscribes.forEach(unsub => {
-        try { unsub(); } catch {}
+    setMeta(message) {
+      const meta = $("#adminMeta");
+      if (meta) meta.textContent = message || "";
+    },
+
+    clearBoardSubscriptions() {
+      Admin.state.boardUnsubscribes.forEach((unsub) => {
+        try {
+          unsub();
+        } catch {
+          // ignore
+        }
       });
-      Admin.state.unsubscribes = [];
+
+      Admin.state.boardUnsubscribes = [];
+    },
+
+    getBusyTargets(specs) {
+      return (Array.isArray(specs) ? specs : [specs]).filter(Boolean);
+    },
+
+    setBusy(specs, isBusy) {
+      for (const spec of Admin.getBusyTargets(specs)) {
+        const el = spec?.el || spec;
+        if (!el) continue;
+
+        if (spec?.busyText != null) {
+          if (isBusy) {
+            if (el.dataset.originalText == null) {
+              el.dataset.originalText = el.textContent;
+            }
+            el.textContent = spec.busyText;
+          } else if (el.dataset.originalText != null) {
+            el.textContent = el.dataset.originalText;
+            delete el.dataset.originalText;
+          }
+        }
+
+        if ("disabled" in el) {
+          el.disabled = !!isBusy;
+        }
+
+        if (isBusy) {
+          el.setAttribute("aria-busy", "true");
+        } else {
+          el.removeAttribute("aria-busy");
+        }
+      }
+    },
+
+    async runLocked(actionKey, busySpecs, action) {
+      if (Admin.state.pendingActions.has(actionKey)) return;
+
+      Admin.state.pendingActions.add(actionKey);
+      Admin.setBusy(busySpecs, true);
+
+      try {
+        return await action();
+      } finally {
+        Admin.setBusy(busySpecs, false);
+        Admin.state.pendingActions.delete(actionKey);
+      }
     },
 
     updateCurrentSessionDisplay(session) {
@@ -63,8 +127,8 @@
       if (!currentDisplay) return;
 
       currentDisplay.textContent = session
-          ? `${session.name} • ${session.era || ""}`
-          : "No session selected";
+        ? `${session.name} • ${session.era || ""}`
+        : "No session selected";
     },
 
     hideSessionCreate() {
@@ -82,7 +146,41 @@
       if (!btn) return;
 
       btn.addEventListener("click", () => {
-        console.warn("Global reset is disabled for Firebase right now.");
+        const { sessionId, teamId } = Admin.state;
+
+        if (!sessionId || !teamId) {
+          Admin.setMeta("Select a team first.");
+          return;
+        }
+
+        Admin.showConfirmModal({
+          title: "Reset all stamps?",
+          message: "This will clear all stamps for the selected team on all assigned boards.",
+          confirmText: "Reset Stamps",
+          onConfirm: async () => {
+            const confirmBtn = $("#confirmModalConfirmBtn");
+            const cancelBtn = $("#confirmModalCancelBtn");
+
+            await Admin.runLocked(
+              "reset-stamps",
+              [
+                { el: confirmBtn, busyText: "Resetting…" },
+                cancelBtn
+              ],
+              async () => {
+                try {
+                  await window.App.stamps.resetTeam(sessionId, teamId);
+                  Admin.hideConfirmModal();
+                  Admin.setMeta("Stamps reset.");
+                  await Admin.renderBoardsPane();
+                } catch (err) {
+                  console.error("Reset stamps failed:", err);
+                  Admin.setMeta("Failed to reset stamps.");
+                }
+              }
+            );
+          }
+        });
       });
     },
 
@@ -118,16 +216,34 @@
       if (toggleDeleteBtn) {
         toggleDeleteBtn.addEventListener("click", () => {
           if (!Admin.state.sessionId) {
-            $("#adminMeta").textContent = "No session selected.";
+            Admin.setMeta("No session selected.");
             return;
           }
 
           Admin.showConfirmModal({
             title: "Delete session?",
-            message: "This will remove the selected session and its teams. This cannot be undone.",
+            message: "This will remove the selected session, its teams, its board assignments, and all of its stamps. This cannot be undone.",
             confirmText: "Delete Session",
             onConfirm: async () => {
-              await Admin.deleteCurrentSession();
+              const confirmBtn = $("#confirmModalConfirmBtn");
+              const cancelBtn = $("#confirmModalCancelBtn");
+
+              await Admin.runLocked(
+                "delete-session",
+                [
+                  { el: confirmBtn, busyText: "Deleting…" },
+                  cancelBtn
+                ],
+                async () => {
+                  try {
+                    await Admin.deleteCurrentSession();
+                    Admin.hideConfirmModal();
+                  } catch (err) {
+                    console.error("Delete session failed:", err);
+                    Admin.setMeta("Failed to delete session.");
+                  }
+                }
+              );
             }
           });
         });
@@ -142,7 +258,7 @@
       if (toggleCreateBtn) {
         toggleCreateBtn.addEventListener("click", () => {
           if (!Admin.state.sessionId) {
-            $("#adminMeta").textContent = "Select a session first.";
+            Admin.setMeta("Select a session first.");
             return;
           }
 
@@ -160,16 +276,34 @@
       if (toggleDeleteBtn) {
         toggleDeleteBtn.addEventListener("click", () => {
           if (!Admin.state.teamId) {
-            $("#adminMeta").textContent = "Select a team first.";
+            Admin.setMeta("Select a team first.");
             return;
           }
 
           Admin.showConfirmModal({
             title: "Delete team?",
-            message: "This will remove the selected team from the current session. This cannot be undone.",
+            message: "This will remove the selected team, its board assignments, and all of its stamps from the current session. This cannot be undone.",
             confirmText: "Delete Team",
             onConfirm: async () => {
-              await Admin.deleteCurrentTeam();
+              const confirmBtn = $("#confirmModalConfirmBtn");
+              const cancelBtn = $("#confirmModalCancelBtn");
+
+              await Admin.runLocked(
+                "delete-team",
+                [
+                  { el: confirmBtn, busyText: "Deleting…" },
+                  cancelBtn
+                ],
+                async () => {
+                  try {
+                    await Admin.deleteCurrentTeam();
+                    Admin.hideConfirmModal();
+                  } catch (err) {
+                    console.error("Delete team failed:", err);
+                    Admin.setMeta("Failed to delete team.");
+                  }
+                }
+              );
             }
           });
         });
@@ -201,40 +335,59 @@
         const nameInput = $("#newSessionName");
         const eraSelect = $("#newSessionEra");
         const customEraInput = $("#newSessionEraCustom");
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const cancelBtn = $("#cancelCreateSessionBtn");
 
         const name = (nameInput?.value || "").trim();
-
         let era = (eraSelect?.value || "ARR").trim();
+
         if (era === "__custom__") {
           era = (customEraInput?.value || "").trim();
         }
 
         if (!name) {
-          $("#adminMeta").textContent = "Session name is required.";
+          Admin.setMeta("Session name is required.");
           return;
         }
 
         if (!era) {
-          $("#adminMeta").textContent = "Era is required.";
+          Admin.setMeta("Era is required.");
           return;
         }
 
-        const session = await window.App.sessionStore.createSession({
-          name,
-          era,
-          status: "active"
-        });
+        await Admin.runLocked(
+          "create-session",
+          [
+            { el: submitBtn, busyText: "Creating…" },
+            cancelBtn,
+            nameInput,
+            eraSelect,
+            customEraInput
+          ],
+          async () => {
+            try {
+              const session = await window.App.sessionStore.createSession({
+                name,
+                era,
+                status: "active"
+              });
 
-        if (nameInput) nameInput.value = "";
-        if (eraSelect) eraSelect.value = "ARR";
-        if (customEraInput) {
-          customEraInput.value = "";
-          customEraInput.style.display = "none";
-        }
+              if (nameInput) nameInput.value = "";
+              if (eraSelect) eraSelect.value = "ARR";
+              if (customEraInput) {
+                customEraInput.value = "";
+                customEraInput.style.display = "none";
+              }
 
-        Admin.hideSessionCreate();
-        $("#adminMeta").textContent = `Created session: ${session.name}`;
-        await Admin.selectSession(session.id);
+              Admin.hideSessionCreate();
+              Admin.setMeta(`Created session: ${session.name}`);
+              await Admin.selectSession(session.id);
+            } catch (err) {
+              console.error("Create session failed:", err);
+              Admin.setMeta("Failed to create session.");
+            }
+          }
+        );
       });
     },
 
@@ -246,41 +399,55 @@
         e.preventDefault();
 
         if (!Admin.state.sessionId) {
-          $("#adminMeta").textContent = "Select a session first.";
+          Admin.setMeta("Select a session first.");
           return;
         }
 
         const nameInput = $("#newTeamName");
         const codeInput = $("#newTeamCode");
-        const regionInput = $("#newTeamRegion");
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const cancelBtn = $("#cancelCreateTeamBtn");
 
         const name = (nameInput?.value || "").trim();
         const code = (codeInput?.value || "").trim().toUpperCase();
-        const region = (regionInput?.value || "").trim();
 
         if (!name) {
-          $("#adminMeta").textContent = "Team name is required.";
+          Admin.setMeta("Team name is required.");
           return;
         }
 
         if (!code) {
-          $("#adminMeta").textContent = "Team code is required.";
+          Admin.setMeta("Team code is required.");
           return;
         }
 
-        const team = await window.App.sessionStore.createTeam(Admin.state.sessionId, {
-          name,
-          code,
-          region
-        });
+        await Admin.runLocked(
+          "create-team",
+          [
+            { el: submitBtn, busyText: "Creating…" },
+            cancelBtn,
+            nameInput,
+            codeInput
+          ],
+          async () => {
+            try {
+              const team = await window.App.sessionStore.createTeam(Admin.state.sessionId, {
+                name,
+                code
+              });
 
-        if (nameInput) nameInput.value = "";
-        if (codeInput) codeInput.value = "";
-        if (regionInput) regionInput.value = "";
+              if (nameInput) nameInput.value = "";
+              if (codeInput) codeInput.value = "";
 
-        Admin.hideTeamCreate();
-        $("#adminMeta").textContent = `Created team: ${team.name}`;
-        await Admin.selectTeam(team.id);
+              Admin.hideTeamCreate();
+              Admin.setMeta(`Created team: ${team.name}`);
+              await Admin.selectTeam(team.id);
+            } catch (err) {
+              console.error("Create team failed:", err);
+              Admin.setMeta("Failed to create team.");
+            }
+          }
+        );
       });
     },
 
@@ -291,6 +458,7 @@
 
       if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
+          if (cancelBtn.disabled) return;
           Admin.hideConfirmModal();
         });
       }
@@ -302,15 +470,13 @@
             return;
           }
 
-          const action = Admin.state.modalAction;
-          Admin.hideConfirmModal();
-          await action();
+          await Admin.state.modalAction();
         });
       }
 
       if (backdrop) {
         backdrop.addEventListener("click", (e) => {
-          if (e.target === backdrop) {
+          if (e.target === backdrop && !(cancelBtn && cancelBtn.disabled)) {
             Admin.hideConfirmModal();
           }
         });
@@ -322,12 +488,19 @@
       const titleEl = $("#confirmModalTitle");
       const messageEl = $("#confirmModalMessage");
       const confirmBtn = $("#confirmModalConfirmBtn");
+      const cancelBtn = $("#confirmModalCancelBtn");
 
-      if (!backdrop || !titleEl || !messageEl || !confirmBtn) return;
+      if (!backdrop || !titleEl || !messageEl || !confirmBtn || !cancelBtn) return;
 
       titleEl.textContent = title || "Are you sure?";
       messageEl.textContent = message || "This action cannot be undone.";
       confirmBtn.textContent = confirmText || "Confirm";
+      delete confirmBtn.dataset.originalText;
+      delete cancelBtn.dataset.originalText;
+      confirmBtn.disabled = false;
+      cancelBtn.disabled = false;
+      confirmBtn.removeAttribute("aria-busy");
+      cancelBtn.removeAttribute("aria-busy");
       Admin.state.modalAction = onConfirm || null;
 
       backdrop.style.display = "";
@@ -342,38 +515,44 @@
     async deleteCurrentSession() {
       const sessionId = Admin.state.sessionId;
       if (!sessionId) {
-        $("#adminMeta").textContent = "No session selected.";
+        Admin.setMeta("No session selected.");
         return;
       }
 
-      const { remove } = window.FirebaseDbApi;
-
-      await remove(window.App.sessionStore.dbRef(window.App.sessionStore.sessionPath(sessionId)));
-      await remove(window.App.sessionStore.dbRef(window.App.sessionStore.teamPath(sessionId)));
+      await window.App.sessionStore.deleteSession(sessionId);
 
       Admin.state.sessionId = null;
       Admin.state.teamId = null;
-      Admin.clearSubscriptions();
+      Admin.clearBoardSubscriptions();
 
-      $("#teamList").innerHTML = "";
-      $("#boardsPane").innerHTML = `<div class="empty-state muted">Choose a session and team to view their boards.</div>`;
-      $("#adminTitle").textContent = "Admin";
+      const teamList = $("#teamList");
+      const boardsPane = $("#boardsPane");
+      const title = $("#adminTitle");
+      const picker = $("#sessionPicker");
+
+      if (teamList) teamList.innerHTML = "";
+      if (boardsPane) {
+        boardsPane.innerHTML = '<div class="empty-state muted">Choose a session and team to view their boards.</div>';
+      }
+      if (title) title.textContent = "Admin";
+      if (picker) picker.value = "";
 
       const sessions = await window.App.sessionStore.getSessions();
       const firstSession = sessions[0] || null;
 
-      if (firstSession) {
-        $("#adminMeta").textContent = "Session deleted.";
-        await Admin.selectSession(firstSession.id);
-
-        const teams = await window.App.sessionStore.getTeams(firstSession.id);
-        const firstTeam = teams[0];
-        if (firstTeam) await Admin.selectTeam(firstTeam.id);
-      } else {
+      if (!firstSession) {
         Admin.updateCurrentSessionDisplay(null);
-        const picker = $("#sessionPicker");
-        if (picker) picker.value = "";
-        $("#adminMeta").textContent = "Session deleted. No sessions left.";
+        Admin.setMeta("Session deleted. No sessions left.");
+        return;
+      }
+
+      Admin.setMeta("Session deleted.");
+      await Admin.selectSession(firstSession.id);
+
+      const teams = await window.App.sessionStore.getTeams(firstSession.id);
+      const firstTeam = teams[0] || null;
+      if (firstTeam) {
+        await Admin.selectTeam(firstTeam.id);
       }
     },
 
@@ -382,27 +561,33 @@
       const teamId = Admin.state.teamId;
 
       if (!sessionId || !teamId) {
-        $("#adminMeta").textContent = "No team selected.";
+        Admin.setMeta("No team selected.");
         return;
       }
 
       await window.App.sessionStore.deleteTeam(sessionId, teamId);
 
       Admin.state.teamId = null;
-      Admin.clearSubscriptions();
+      Admin.clearBoardSubscriptions();
 
-      $("#boardsPane").innerHTML = `<div class="empty-state muted">Select a team to view boards.</div>`;
-      $("#adminTitle").textContent = "Admin";
+      const boardsPane = $("#boardsPane");
+      const title = $("#adminTitle");
+
+      if (boardsPane) {
+        boardsPane.innerHTML = '<div class="empty-state muted">Select a team to view boards.</div>';
+      }
+      if (title) title.textContent = "Admin";
 
       const teams = await window.App.sessionStore.getTeams(sessionId);
       const firstTeam = teams[0] || null;
 
-      if (firstTeam) {
-        $("#adminMeta").textContent = "Team deleted.";
-        await Admin.selectTeam(firstTeam.id);
-      } else {
-        $("#adminMeta").textContent = "Team deleted. No teams left in this session.";
+      if (!firstTeam) {
+        Admin.setMeta("Team deleted. No teams left in this session.");
+        return;
       }
+
+      Admin.setMeta("Team deleted.");
+      await Admin.selectTeam(firstTeam.id);
     },
 
     renderSessions() {
@@ -415,27 +600,27 @@
       }
 
       Admin.state.unsubscribeSessions = window.App.sessionStore.subscribeSessions((sessions) => {
-        picker.innerHTML = `<option value="">Select a session</option>`;
+        picker.innerHTML = '<option value="">Select a session</option>';
 
-        sessions.forEach(s => {
+        sessions.forEach((session) => {
           const option = document.createElement("option");
-          option.value = s.id;
-          option.textContent = s.name;
-          option.selected = Admin.state.sessionId === s.id;
+          option.value = session.id;
+          option.textContent = session.name;
+          option.selected = Admin.state.sessionId === session.id;
           picker.appendChild(option);
         });
 
         if (!sessions.length) {
           Admin.updateCurrentSessionDisplay(null);
-          $("#adminMeta").textContent = "No sessions yet.";
+          Admin.setMeta("No sessions yet.");
           return;
         }
 
-        const current = sessions.find(s => s.id === Admin.state.sessionId) || null;
+        const current = sessions.find((session) => session.id === Admin.state.sessionId) || null;
         if (current) {
           Admin.updateCurrentSessionDisplay(current);
         } else if (!Admin.state.sessionId) {
-          $("#adminMeta").textContent = "Select a session and team.";
+          Admin.setMeta("Select a session and team.");
         }
       });
     },
@@ -443,24 +628,29 @@
     async selectSession(sessionId) {
       Admin.state.sessionId = sessionId;
       Admin.state.teamId = null;
-      Admin.clearSubscriptions();
+      Admin.clearBoardSubscriptions();
 
       const sessions = await window.App.sessionStore.getSessions();
-      const session = sessions.find(s => s.id === sessionId) || null;
-
+      const session = sessions.find((entry) => entry.id === sessionId) || null;
       const picker = $("#sessionPicker");
+      const title = $("#adminTitle");
+      const boardsPane = $("#boardsPane");
+
       if (picker) picker.value = sessionId;
+      if (title) title.textContent = "Admin";
+      if (boardsPane) {
+        boardsPane.innerHTML = '<div class="empty-state muted">Select a team to view boards.</div>';
+      }
 
       Admin.updateCurrentSessionDisplay(session);
       Admin.renderTeams(sessionId);
-
-      $("#adminTitle").textContent = "Admin";
-      $("#adminMeta").textContent = "Select a team to load boards.";
-      $("#boardsPane").innerHTML = `<div class="empty-state muted">Select a team to view boards.</div>`;
+      Admin.setMeta("Select a team to load boards.");
     },
 
     renderTeams(sessionId) {
       const host = $("#teamList");
+      if (!host) return;
+
       host.innerHTML = "";
 
       if (Admin.state.unsubscribeTeams) {
@@ -471,20 +661,19 @@
       Admin.state.unsubscribeTeams = window.App.sessionStore.subscribeTeams(sessionId, (teams) => {
         host.innerHTML = "";
 
-        teams.forEach(t => {
+        teams.forEach((team) => {
           const el = document.createElement("div");
           el.className = "list-item";
           el.setAttribute("role", "option");
-          el.dataset.teamId = t.id;
+          el.dataset.teamId = team.id;
           el.innerHTML = `
             <div>
-              <div><strong>${window.App.util.escapeHtml(t.name)}</strong></div>
-              <div class="muted small">Code: <span class="badge">${window.App.util.escapeHtml(t.code)}</span></div>
+              <div><strong>${window.App.util.escapeHtml(team.name)}</strong></div>
+              <div class="muted small">Code: <span class="badge">${window.App.util.escapeHtml(team.code)}</span></div>
             </div>
-            <div class="badge">${window.App.util.escapeHtml(t.region || "")}</div>
           `;
-          el.addEventListener("click", () => Admin.selectTeam(t.id));
-          el.classList.toggle("is-active", Admin.state.teamId === t.id);
+          el.addEventListener("click", () => Admin.selectTeam(team.id));
+          el.classList.toggle("is-active", Admin.state.teamId === team.id);
           host.appendChild(el);
         });
       });
@@ -496,7 +685,7 @@
 
       Admin.state.teamId = teamId;
 
-      window.App.util.qsa("#teamList .list-item").forEach(el => {
+      window.App.util.qsa("#teamList .list-item").forEach((el) => {
         el.classList.toggle("is-active", el.dataset.teamId === teamId);
       });
 
@@ -507,35 +696,38 @@
       const { sessionId, teamId } = Admin.state;
       if (!sessionId || !teamId) return;
 
-      Admin.clearSubscriptions();
+      Admin.clearBoardSubscriptions();
 
       const sessions = await window.App.sessionStore.getSessions();
-      const session = sessions.find(s => s.id === sessionId) || null;
-
+      const session = sessions.find((entry) => entry.id === sessionId) || null;
       const teams = await window.App.sessionStore.getTeams(sessionId);
-      const team = teams.find(t => t.id === teamId) || null;
+      const team = teams.find((entry) => entry.id === teamId) || null;
+
+      const title = $("#adminTitle");
+      const pane = $("#boardsPane");
+
+      if (!title || !pane) return;
 
       if (!session || !team) {
-        $("#adminTitle").textContent = "Admin";
-        $("#adminMeta").textContent = "Session or team not found.";
-        $("#boardsPane").innerHTML = `<div class="empty-state muted">Session or team not found.</div>`;
+        title.textContent = "Admin";
+        Admin.setMeta("Session or team not found.");
+        pane.innerHTML = '<div class="empty-state muted">Session or team not found.</div>';
         return;
       }
 
-      $("#adminTitle").textContent = `${team.name} — Admin`;
-      $("#adminMeta").textContent = `${session.name} • Team code: ${team.code} • Firebase stamps`;
+      title.textContent = `${team.name} — Admin`;
+      Admin.setMeta(`${session.name} • Team code: ${team.code} • Live Firebase stamps`);
 
       const boards = await window.App.data.getBoardsForTeam(sessionId, teamId);
-      const pane = $("#boardsPane");
       pane.innerHTML = "";
 
       if (!boards.length) {
-        pane.innerHTML = `<div class="empty-state muted">No boards assigned to this team (mock data).</div>`;
+        pane.innerHTML = '<div class="empty-state muted">No boards assigned to this team.</div>';
         return;
       }
 
       const { items } = await window.App.data.items();
-      const itemById = new Map(items.map(i => [i.id, i]));
+      const itemById = new Map(items.map((item) => [item.id, item]));
 
       for (const board of boards) {
         const card = document.createElement("div");
@@ -546,52 +738,112 @@
         head.innerHTML = `
           <div>
             <div class="board-card__title">${window.App.util.escapeHtml(board.name)}</div>
-            <div class="board-card__meta">Zone: ${window.App.util.escapeHtml(board.zone.name)} • ${board.size}×${board.size}</div>
+            <div class="board-card__meta">Zone: ${window.App.util.escapeHtml(board.zone?.name || "")} • ${board.size}×${board.size}</div>
           </div>
           <a class="link" href="${Admin.boardLink(sessionId, teamId, board.id)}">Open board</a>
         `;
+
+        const gridStack = document.createElement("div");
+        gridStack.className = "admin-grid-stack";
 
         const grid = document.createElement("div");
         grid.className = "admin-grid";
         grid.style.setProperty("--gridSize", String(board.size || 5));
 
+        const overlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        overlay.setAttribute("class", "bingo-overlay");
+        overlay.setAttribute("aria-hidden", "true");
+
         const stampState = await window.App.stamps.get(sessionId, teamId, board.id);
+        let latestStampState = stampState;
+        let activeBingoKeys = window.App.bingoFx.getCompletedLineKeys(board.size || 5, stampState);
         const tiles = board.tiles || [];
 
-        for (let idx = 0; idx < tiles.length; idx++) {
+        for (let idx = 0; idx < tiles.length; idx += 1) {
           const tile = tiles[idx];
           const item = itemById.get(tile.itemId) || { name: "Unknown Item", description: "" };
-
           const tileEl = document.createElement("div");
+          const tileKey = `${board.id}:${idx}`;
+
           tileEl.className = "admin-tile";
-
-          const stamped = !!stampState[String(idx)];
-          tileEl.classList.toggle("is-stamped", stamped);
-
+          const row = Math.floor(idx / (board.size || 5));
+          const col = idx % (board.size || 5);
+          tileEl.classList.add(((row + col) % 2 === 0) ? "tile--even" : "tile--odd");
+          tileEl.classList.toggle("is-stamped", !!stampState[String(idx)]?.stamped);
           tileEl.innerHTML = `
             <div class="admin-tile__name">${window.App.util.escapeHtml(item.name)}</div>
             <div class="admin-tile__desc">${window.App.util.escapeHtml(item.description || "")}</div>
           `;
 
           tileEl.addEventListener("click", async () => {
-            const now = await window.App.stamps.toggle(sessionId, teamId, board.id, idx);
-            tileEl.classList.toggle("is-stamped", now);
+            if (tileEl.dataset.busy === "1") return;
+
+            tileEl.dataset.busy = "1";
+            tileEl.setAttribute("aria-busy", "true");
+
+            try {
+              const nextStamp = await window.App.stamps.toggle(sessionId, teamId, board.id, idx);
+              tileEl.classList.toggle("is-stamped", !!nextStamp?.stamped);
+            } catch (err) {
+              console.error("Stamp toggle failed:", err);
+              Admin.setMeta(`Failed to update tile ${idx + 1} on ${board.name}.`);
+            } finally {
+              delete tileEl.dataset.busy;
+              tileEl.removeAttribute("aria-busy");
+            }
           });
 
           grid.appendChild(tileEl);
         }
 
-        const unsubscribe = window.App.stamps.subscribe(sessionId, teamId, board.id, (nextStampState) => {
-          const tileEls = grid.querySelectorAll(".admin-tile");
-          tileEls.forEach((tileEl, idx) => {
-            tileEl.classList.toggle("is-stamped", !!nextStampState[String(idx)]);
+        gridStack.appendChild(grid);
+        gridStack.appendChild(overlay);
+
+        window.App.bingoFx.renderOverlayNextFrame({
+          gridEl: grid,
+          overlayEl: overlay,
+          size: board.size || 5,
+          stampState: latestStampState
+        });
+
+        const overlayCleanup = window.App.bingoFx.watchLayout(grid, () => {
+          window.App.bingoFx.renderOverlayNextFrame({
+            gridEl: grid,
+            overlayEl: overlay,
+            size: board.size || 5,
+            stampState: latestStampState
           });
         });
 
-        Admin.state.unsubscribes.push(unsubscribe);
+        const unsubscribe = window.App.stamps.subscribe(sessionId, teamId, board.id, (nextStampState) => {
+          const tileEls = grid.querySelectorAll(".admin-tile");
+          tileEls.forEach((tileEl, idx) => {
+            tileEl.classList.toggle("is-stamped", !!nextStampState[String(idx)]?.stamped);
+          });
 
+          const prevKeys = new Set(activeBingoKeys || []);
+          const nextKeys = window.App.bingoFx.getCompletedLineKeys(board.size || 5, nextStampState);
+          const newLineKeys = nextKeys.filter((key) => !prevKeys.has(key));
+
+          latestStampState = nextStampState;
+          activeBingoKeys = nextKeys;
+
+          window.App.bingoFx.renderOverlayNextFrame({
+            gridEl: grid,
+            overlayEl: overlay,
+            size: board.size || 5,
+            stampState: latestStampState,
+            newLineKeys
+          });
+
+          if (newLineKeys.length) {
+            window.App.bingoFx.playJingle();
+          }
+        });
+
+        Admin.state.boardUnsubscribes.push(unsubscribe, overlayCleanup);
         card.appendChild(head);
-        card.appendChild(grid);
+        card.appendChild(gridStack);
         pane.appendChild(card);
       }
     },
@@ -602,20 +854,13 @@
       url.searchParams.set("team", teamId);
       url.searchParams.set("board", boardId);
       return url.toString();
-    },
-
-    refreshBoardsPane() {
-      if (Admin.state.sessionId && Admin.state.teamId) {
-        Admin.renderBoardsPane().catch(() => {});
-      }
     }
   };
 
   document.addEventListener("DOMContentLoaded", () => {
-    Admin.init().catch(() => {
-      const meta = $("#adminMeta");
-      if (meta) meta.textContent = "Failed to initialize admin.";
+    Admin.init().catch((err) => {
+      console.error("Admin init failed:", err);
+      Admin.setMeta("Failed to initialize admin.");
     });
   });
 })();
-

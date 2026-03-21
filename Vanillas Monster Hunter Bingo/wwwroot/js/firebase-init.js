@@ -1,4 +1,4 @@
-﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {
     getDatabase,
     ref,
@@ -6,7 +6,8 @@ import {
     set,
     onValue,
     push,
-    remove
+    remove,
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import {
     getAuth,
@@ -40,7 +41,12 @@ window.FirebaseDbApi = {
     set,
     onValue,
     push,
-    remove
+    remove,
+    runTransaction
+};
+
+window.FirebaseAdmin = {
+    uid: "T9XOzzfNS3UKr6rzoGMn4PuYiGn1"
 };
 
 window.FirebaseAuthApi = {

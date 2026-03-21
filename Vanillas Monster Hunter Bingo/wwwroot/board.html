@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -25,7 +25,7 @@
 </header>
 
 <main class="container">
-  <section class="card">
+  <section class="card board-page-card">
     <div class="board-head">
       <div>
         <h1 id="boardTitle" class="m0">Team Board</h1>
@@ -38,15 +38,25 @@
       </div>
     </div>
 
-    <div id="boardStage" class="board-stage" aria-label="Bingo board">
-      <!-- Background layer -->
-      <div id="zoneBg" class="board-bg" aria-hidden="true"></div>
+    <div class="board-stage-wrap">
+      <div class="board-ornament board-ornament--outer" aria-hidden="true">
+        <img class="board-ornament__corner board-ornament__corner--tl" src="/assets/cornerdeco.png" alt="">
+        <img class="board-ornament__corner board-ornament__corner--tr" src="/assets/cornerdeco.png" alt="">
+        <img class="board-ornament__corner board-ornament__corner--br" src="/assets/cornerdeco.png" alt="">
+        <img class="board-ornament__corner board-ornament__corner--bl" src="/assets/cornerdeco.png" alt="">
+      </div>
 
-      <!-- Frame layer (static “image” simulated by CSS) -->
-      <div class="board-frame" aria-hidden="true"></div>
+      <div id="boardStage" class="board-stage" aria-label="Bingo board">
+        <div id="zoneBg" class="board-bg" aria-hidden="true"></div>
+        <div class="board-frame" aria-hidden="true"></div>
 
-      <!-- Overlay: grid tiles -->
-      <div id="boardGrid" class="board-grid" role="grid" aria-label="Board tiles"></div>
+        <div class="board-shell">
+          <div class="board-grid-stack">
+            <svg id="boardBingoOverlay" class="bingo-overlay" aria-hidden="true"></svg>
+            <div id="boardGrid" class="board-grid" role="grid" aria-label="Board tiles"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="board-legend">
@@ -56,10 +66,10 @@
       </div>
       <div class="legend">
         <span class="legend__dot legend__dot--unstamped" aria-hidden="true"></span>
-        <span class="muted">Unstamped (chop chop!)</span>
+        <span class="muted">Unstamped</span>
       </div>
       <div class="muted small">
-        If any problems arise please call Vanilla Cream'
+        If anything looks wrong, contact the event organizer.
       </div>
     </div>
   </section>
@@ -67,7 +77,7 @@
 
 <footer class="footer container">
   <div class="muted small">
-    Data: <code>data/sessions.json</code>, <code>data/boards.json</code>, <code>data/items.json</code>, check firebase for auth before i forget again
+    Live data is powered by Firebase Realtime Database.
   </div>
 </footer>
 
