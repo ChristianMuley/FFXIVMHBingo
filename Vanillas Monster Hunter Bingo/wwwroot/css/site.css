@@ -36,28 +36,30 @@ body.page--board-themed{
 body.page--board-themed.theme--la-noscea{
   background-color: #0c1520;
   background-image:
-    radial-gradient(circle at 18% 22%, rgba(116, 198, 255, 0.22), transparent 24%),
-    radial-gradient(circle at 78% 18%, rgba(81, 161, 224, 0.18), transparent 22%),
-    radial-gradient(circle at 50% 82%, rgba(25, 76, 117, 0.34), transparent 34%),
-    linear-gradient(180deg, #1a3552 0%, #10283f 36%, #0d1d2c 72%, #09131c 100%);
+          linear-gradient(180deg, rgba(7,15,24,.46), rgba(8,14,22,.74)),
+          radial-gradient(circle at 18% 22%, rgba(116, 198, 255, 0.16), transparent 24%),
+          radial-gradient(circle at 78% 18%, rgba(81, 161, 224, 0.12), transparent 22%),
+          url("/assets/lanoscea.png");
+  background-position: center;
 }
 
 body.page--board-themed.theme--thanalan{
   background-color: #22150d;
   background-image:
-    radial-gradient(circle at 20% 18%, rgba(255, 213, 120, 0.18), transparent 24%),
-    radial-gradient(circle at 78% 20%, rgba(214, 120, 55, 0.16), transparent 22%),
-    radial-gradient(circle at 52% 84%, rgba(104, 55, 20, 0.28), transparent 34%),
-    linear-gradient(180deg, #6c4a23 0%, #4e3117 36%, #312013 72%, #19110b 100%);
+          linear-gradient(180deg, rgba(26,14,7,.42), rgba(22,13,8,.72)),
+          radial-gradient(circle at 20% 18%, rgba(255, 213, 120, 0.12), transparent 24%),
+          radial-gradient(circle at 78% 20%, rgba(214, 120, 55, 0.10), transparent 22%),
+          url("/assets/thanalan.png");
+  background-position: center;
 }
-
 body.page--board-themed.theme--black-shroud{
   background-color: #0c1510;
   background-image:
-    radial-gradient(circle at 18% 18%, rgba(115, 173, 105, 0.14), transparent 22%),
-    radial-gradient(circle at 80% 22%, rgba(55, 130, 76, 0.16), transparent 20%),
-    radial-gradient(circle at 50% 82%, rgba(32, 64, 35, 0.32), transparent 34%),
-    linear-gradient(180deg, #203f26 0%, #183120 34%, #102318 68%, #09130d 100%);
+          linear-gradient(180deg, rgba(7,16,10,.44), rgba(7,14,10,.74)),
+          radial-gradient(circle at 18% 18%, rgba(115, 173, 105, 0.10), transparent 22%),
+          radial-gradient(circle at 80% 22%, rgba(55, 130, 76, 0.12), transparent 20%),
+          url("/assets/blackshroud.png");
+  background-position: center;
 }
 
 body.page--board-themed.theme--coerthas{

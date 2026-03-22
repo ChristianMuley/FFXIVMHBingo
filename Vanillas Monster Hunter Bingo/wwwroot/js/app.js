@@ -50,6 +50,13 @@
         ]
       },
 
+      backgroundThemes: [
+        { id: "theme--la-noscea", label: "La Noscea" },
+        { id: "theme--thanalan", label: "Thanalan" },
+        { id: "theme--black-shroud", label: "Black Shroud" },
+        { id: "theme--coerthas", label: "Coerthas" }
+      ],
+
       getRegions(expansionId) {
         return App.catalog.regionsByExpansion[expansionId] || [];
       },
@@ -69,6 +76,17 @@
           name: region.zoneName,
           cssClass: region.cssClass
         };
+      },
+
+      inferThemeId(expansionId, regionId, zone = null) {
+        const key = `${regionId || ""} ${zone?.cssClass || ""} ${zone?.name || ""}`.toLowerCase();
+
+        if (key.includes("noscea") || key.includes("limsa")) return "theme--la-noscea";
+        if (key.includes("thanalan") || key.includes("ul-dah") || key.includes("uldah")) return "theme--thanalan";
+        if (key.includes("shroud") || key.includes("gridania")) return "theme--black-shroud";
+        if (key.includes("coerthas")) return "theme--coerthas";
+
+        return "";
       }
     },
 
@@ -264,8 +282,9 @@
         const size = Math.max(1, Number(board?.size) || 5);
         const expansion = board?.expansion || board?.era || "ARR";
         const region = board?.region || "";
-        const zone = board?.zone && board.zone.name ? board.zone : App.catalog.makeZone(expansion, region);
-
+        const zone = App.catalog.makeZone(expansion, region);
+        const backgroundTheme = board?.backgroundTheme || App.catalog.inferThemeId(expansion, region, zone);
+        
         return {
           id: board?.id || "",
           sessionId: board?.sessionId || "",
@@ -275,6 +294,7 @@
           era: expansion,
           region,
           zone,
+          backgroundTheme,
           size,
           status: board?.status || "draft",
           version: Number(board?.version) || 1,
@@ -1129,7 +1149,10 @@
         "theme--coerthas"
       ],
 
-      getThemeClass(zone) {
+      getThemeClass(boardOrZone) {
+        if (boardOrZone?.backgroundTheme) return boardOrZone.backgroundTheme;
+
+        const zone = boardOrZone?.zone ? boardOrZone.zone : boardOrZone;
         const key = `${zone?.cssClass || ""} ${zone?.name || ""}`.toLowerCase();
 
         if (key.includes("limsa") || key.includes("noscea")) return "theme--la-noscea";
@@ -1140,13 +1163,13 @@
         return "";
       },
 
-      applyPageTheme(zone) {
+      applyPageTheme(boardOrZone) {
         const body = document.body;
         if (!body) return;
 
         body.classList.remove(...App.boardPage.themeClasses, "page--board-themed");
 
-        const themeClass = App.boardPage.getThemeClass(zone);
+        const themeClass = App.boardPage.getThemeClass(boardOrZone);
         if (themeClass) {
           body.classList.add("page--board-themed", themeClass);
         }
@@ -1460,7 +1483,7 @@
           if (board.zone && board.zone.cssClass) zoneBg.classList.add(board.zone.cssClass);
         }
 
-        App.boardPage.applyPageTheme(board.zone);
+        App.boardPage.applyPageTheme(board);
 
         const grid = App.util.qs("#boardGrid");
         const overlay = App.util.qs("#boardBingoOverlay");
